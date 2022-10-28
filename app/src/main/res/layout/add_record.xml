@@ -9,12 +9,14 @@
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:background="@color/expense_red"
+        android:paddingStart="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="8dp"
         android:text="@string/add"
-        android:textColor="#000000"
+        android:textColor="#FFFFFF"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,7 +37,7 @@
         app:layout_constraintTop_toBottomOf="@+id/title">
 
         <RadioButton
-            android:id="@+id/search"
+            android:id="@+id/income"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="1dp"
@@ -50,7 +52,7 @@
             android:textColor="@color/black" />
 
         <RadioButton
-            android:id="@+id/offer"
+            android:id="@+id/expense"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginTop="1dp"
@@ -113,10 +115,9 @@
         android:id="@+id/date_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:gravity="right"
         android:hint="@string/date"
         android:inputType="date"
         android:minHeight="48dp"

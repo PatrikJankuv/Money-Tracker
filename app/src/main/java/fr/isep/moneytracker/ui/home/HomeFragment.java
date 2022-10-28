@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -21,12 +23,18 @@ import java.util.Date;
 
 import fr.isep.moneytracker.R;
 import fr.isep.moneytracker.databinding.FragmentHomeBinding;
+import fr.isep.moneytracker.model.Record;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
+    private TextView titleTextView;
+    private EditText amountEditText;
+    private EditText noteEditText;
+    private RadioButton expenseRadioButton;
+    private RadioButton incomeRadioButton;
     private TextView datePicker;
     private Spinner categorySpinner;
     private Button cancelButton;
@@ -66,6 +74,29 @@ public class HomeFragment extends Fragment {
         dialogBuilder = new AlertDialog.Builder(getContext());
         final View recordPopUp = getLayoutInflater().inflate(R.layout.add_record, null);
 
+        titleTextView = (TextView) recordPopUp.findViewById(R.id.title);
+        amountEditText = (EditText) recordPopUp.findViewById(R.id.amount);
+        noteEditText = (EditText) recordPopUp.findViewById(R.id.note);
+        expenseRadioButton = (RadioButton) recordPopUp.findViewById(R.id.expense);
+
+        expenseRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                titleTextView.setBackgroundColor(getResources().getColor(R.color.expense_red));
+            }
+        });
+
+        incomeRadioButton = (RadioButton) recordPopUp.findViewById(R.id.income);
+        incomeRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                titleTextView.setBackgroundColor(getResources().getColor(R.color.income_green));
+            }
+        });
+
+
+        expenseRadioButton.setChecked(true);
+
         categorySpinner = (Spinner) recordPopUp.findViewById(R.id.categories);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
                 R.array.category_array, android.R.layout.simple_spinner_item);
@@ -104,6 +135,20 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 dialog.dismiss();
+            }
+        });
+
+        saveButton = (Button) recordPopUp.findViewById(R.id.save_button);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Double amount = Double.parseDouble(amountEditText.getText().toString());
+                amount = expenseRadioButton.isChecked() ? amount * -1: amount;
+                String note = noteEditText.getText().toString();
+                String category = categorySpinner.getSelectedItem().toString();
+
+                System.out.println(String.valueOf(amount) + " " + note + " " + category);
+//                Record record = new Record();
             }
         });
     }
