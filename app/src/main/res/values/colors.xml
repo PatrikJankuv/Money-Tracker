@@ -13,4 +13,11 @@
     <color name="expense_red_nice">#FBE9E7</color>
     <color name="income_green">#00C610</color>
     <color name="income_green_nice">#FFE8F5E9</color>
+    <color name="food_category">#38AFFF</color>
+    <color name="shopping_category">#FFE938</color>
+    <color name="housing_category">#E138FF</color>
+    <color name="transportation_category">#FF8838</color>
+    <color name="entertainment_category">#FB2828</color>
+    <color name="income_category">#42D631</color>
+    <color name="other_category">#6E6E6E</color>
 </resources>

@@ -14,13 +14,12 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string-array name="category_array">
-        <item>Food and Drinks</item>
+        <item>Food</item>
         <item>Shopping</item>
         <item>Housing</item>
         <item>Transportation</item>
-        <item>Life and Entertainment</item>
+        <item>Entertainment</item>
         <item>Income</item>
-        <item>Investment</item>
         <item>Other</item>
     </string-array>
 </resources>

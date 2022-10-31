@@ -13,13 +13,18 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import fr.isep.moneytracker.R;
 import fr.isep.moneytracker.databinding.FragmentHomeBinding;
@@ -28,22 +33,20 @@ import fr.isep.moneytracker.model.Record;
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
-    private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
     private TextView titleTextView;
     private EditText amountEditText;
     private EditText noteEditText;
     private RadioButton expenseRadioButton;
-    private RadioButton incomeRadioButton;
     private TextView datePicker;
     private Spinner categorySpinner;
-    private Button cancelButton;
-    private Button saveButton;
     private DatePickerDialog.OnDateSetListener setListener;
-    private Calendar calendar = Calendar.getInstance();
-    private int day = -1;
-    private int month = -1;
-    private int year = -1;
+    private final Calendar calendar = Calendar.getInstance();
+    private int day = calendar.get(Calendar.DAY_OF_MONTH);
+    private int month = calendar.get(Calendar.MONTH);
+    private int year = calendar.get(Calendar.YEAR);
+    private ArrayList<String> amountRecord, categoryRecord, dateRecord, descriptionRecord;
+    private CustomAdapter customAdapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -60,6 +63,11 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        loadAllRecords();
+        customAdapter = new CustomAdapter(getActivity(), descriptionRecord, dateRecord, amountRecord, categoryRecord);
+        binding.recordsRecycledView.setAdapter(customAdapter);
+        binding.recordsRecycledView.setLayoutManager(new LinearLayoutManager(getContext()));
+
         return root;
     }
 
@@ -69,9 +77,25 @@ public class HomeFragment extends Fragment {
         binding = null;
     }
 
+    private void loadAllRecords(){
+        amountRecord = new ArrayList<>();
+        categoryRecord = new ArrayList<>();
+        dateRecord = new ArrayList<>();
+        descriptionRecord = new ArrayList<>();
+
+       Record.listAll(Record.class).forEach(this::addRecord);
+    }
+
+    private void addRecord(Record record){
+        amountRecord.add(0, String.valueOf(record.getAmount()));
+        categoryRecord.add(0, record.getCategory());
+        dateRecord.add(0, record.getDate());
+        descriptionRecord.add(0, record.getDescription());
+    }
+
 
     public void createNewRecord() {
-        dialogBuilder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
         final View recordPopUp = getLayoutInflater().inflate(R.layout.add_record, null);
 
         titleTextView = (TextView) recordPopUp.findViewById(R.id.title);
@@ -86,7 +110,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        incomeRadioButton = (RadioButton) recordPopUp.findViewById(R.id.income);
+        RadioButton incomeRadioButton = (RadioButton) recordPopUp.findViewById(R.id.income);
         incomeRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -104,6 +128,7 @@ public class HomeFragment extends Fragment {
         categorySpinner.setAdapter(adapter);
 
         datePicker = (TextView) recordPopUp.findViewById(R.id.date_picker);
+        datePicker.setText(getDay() + "." + getMonth() + "." + getYear());
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -121,7 +146,7 @@ public class HomeFragment extends Fragment {
                 month = monthView;
                 year = yearView;
                 month++;
-                String date = day + "/" + month + "/" + year;
+                String date = day + "." + month + "." + year;
                 datePicker.setText(date);
             }
         };
@@ -130,7 +155,7 @@ public class HomeFragment extends Fragment {
         dialog = dialogBuilder.create();
         dialog.show();
 
-        cancelButton = (Button) recordPopUp.findViewById(R.id.cancel_button);
+        Button cancelButton = (Button) recordPopUp.findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -138,30 +163,38 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        saveButton = (Button) recordPopUp.findViewById(R.id.save_button);
+        Button saveButton = (Button) recordPopUp.findViewById(R.id.save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Double amount = Double.parseDouble(amountEditText.getText().toString());
-                amount = expenseRadioButton.isChecked() ? amount * -1: amount;
-                String note = noteEditText.getText().toString();
-                String category = categorySpinner.getSelectedItem().toString();
-
-                System.out.println(String.valueOf(amount) + " " + note + " " + category);
-//                Record record = new Record();
+                try{
+                    Double amount = Double.parseDouble(amountEditText.getText().toString());
+                    System.out.println(amount);
+                    amount = expenseRadioButton.isChecked() ? amount * -1: amount;
+                    String note = noteEditText.getText().toString();
+                    String category = categorySpinner.getSelectedItem().toString();
+                    Record record = new Record(amount, note,day + "." + month + "." + year, category);
+                    record.save();
+                    Toast.makeText(getContext(), "Record created", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    addRecord(record);
+                    customAdapter.notifyItemInserted(0);
+                } catch (Exception ex){
+                    Toast.makeText(getContext(), "Amount is required", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
     private int getDay(){
-        return day == -1 ? calendar.get(Calendar.DAY_OF_MONTH) : day;
+        return day == calendar.get(Calendar.DAY_OF_MONTH) ? calendar.get(Calendar.DAY_OF_MONTH) : day;
     }
 
     private int getMonth(){
-        return month == -1 ? calendar.get(Calendar.MONTH) : month;
+        return month == calendar.get(Calendar.MONTH) ? calendar.get(Calendar.MONTH) + 1 : month;
     }
 
     private int getYear(){
-        return year == -1 ? calendar.get(Calendar.YEAR) : year;
+        return year == calendar.get(Calendar.YEAR) ? calendar.get(Calendar.YEAR) : year;
     }
 }
