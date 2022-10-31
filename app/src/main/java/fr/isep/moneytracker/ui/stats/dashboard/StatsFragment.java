@@ -1,4 +1,4 @@
-package fr.isep.moneytracker.ui.dashboard;
+package fr.isep.moneytracker.ui.stats.dashboard;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,14 +12,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import fr.isep.moneytracker.databinding.FragmentDashboardBinding;
 
-public class DashboardFragment extends Fragment {
+public class StatsFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        StatsViewModel dashboardViewModel =
+                new ViewModelProvider(this).get(StatsViewModel.class);
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();

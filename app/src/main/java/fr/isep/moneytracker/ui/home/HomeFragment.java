@@ -169,7 +169,6 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 try{
                     Double amount = Double.parseDouble(amountEditText.getText().toString());
-                    System.out.println(amount);
                     amount = expenseRadioButton.isChecked() ? amount * -1: amount;
                     String note = noteEditText.getText().toString();
                     String category = categorySpinner.getSelectedItem().toString();

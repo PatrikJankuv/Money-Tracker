@@ -57,8 +57,6 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
         holder.recordDescriptionTxt.setText(String.valueOf(recordDescription.get(position)));
         holder.recordDateTxt.setText(String.valueOf(recordDate.get(position)));
         holder.recordAmountTxt.setText(String.valueOf(recordAmount.get(position)));
-
-        System.out.println(recordCategory.get(position).toString().charAt(0));
         CategoryIcon icon = categoryIconMap.get(String.valueOf(recordCategory.get(position).toString().charAt(0)));
         assert icon != null;
         holder.categoryImg.setImageResource(icon.getIcon());
