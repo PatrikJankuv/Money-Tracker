@@ -1,5 +1,6 @@
 package fr.isep.moneytracker;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -11,14 +12,17 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import fr.isep.moneytracker.databinding.ActivityMainBinding;
+import fr.isep.moneytracker.model.User;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    SharedPreferences prefs = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefs = getSharedPreferences("fr.isep.moneytracker", MODE_PRIVATE);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -32,6 +36,18 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (prefs.getBoolean("firstrun", true)) {
+            // Do first run stuff here then set 'firstrun' as false
+            User user = new User("", 0.0, "€");
+            user.save();
+            prefs.edit().putBoolean("firstrun", false).commit();
+        }
     }
 
 }

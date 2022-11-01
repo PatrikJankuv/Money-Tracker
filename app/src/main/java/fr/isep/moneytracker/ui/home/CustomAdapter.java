@@ -37,7 +37,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
         categoryIconMap.put("S", new CategoryIcon(R.drawable.ic_baseline_shopping_24, R.color.shopping_category));
         categoryIconMap.put("H", new CategoryIcon(R.drawable.ic_baseline_house_24, R.color.housing_category));
         categoryIconMap.put("T", new CategoryIcon(R.drawable.ic_baseline_transport_24, R.color.transportation_category));
-        categoryIconMap.put("L", new CategoryIcon(R.drawable.ic_baseline_nightlife_24, R.color.entertainment_category));
+        categoryIconMap.put("E", new CategoryIcon(R.drawable.ic_baseline_nightlife_24, R.color.entertainment_category));
         categoryIconMap.put("I", new CategoryIcon(R.drawable.ic_baseline_income_24, R.color.income_category));
         categoryIconMap.put("O", new CategoryIcon(R.drawable.ic_baseline_other_24, R.color.other_category));
     }

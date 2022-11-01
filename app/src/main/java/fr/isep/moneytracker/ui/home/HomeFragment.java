@@ -19,16 +19,15 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import fr.isep.moneytracker.R;
 import fr.isep.moneytracker.databinding.FragmentHomeBinding;
 import fr.isep.moneytracker.model.Record;
+import fr.isep.moneytracker.model.User;
 
 public class HomeFragment extends Fragment {
 
@@ -47,6 +46,7 @@ public class HomeFragment extends Fragment {
     private int year = calendar.get(Calendar.YEAR);
     private ArrayList<String> amountRecord, categoryRecord, dateRecord, descriptionRecord;
     private CustomAdapter customAdapter;
+    private User user;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -63,6 +63,8 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        user = User.first(User.class);
+        refreshBalance(0.0);
         loadAllRecords();
         customAdapter = new CustomAdapter(getActivity(), descriptionRecord, dateRecord, amountRecord, categoryRecord);
         binding.recordsRecycledView.setAdapter(customAdapter);
@@ -83,16 +85,22 @@ public class HomeFragment extends Fragment {
         dateRecord = new ArrayList<>();
         descriptionRecord = new ArrayList<>();
 
-       Record.listAll(Record.class).forEach(this::addRecord);
+       Record.listAll(Record.class).forEach(this::addRecordToList);
     }
 
-    private void addRecord(Record record){
+    private void addRecordToList(Record record){
         amountRecord.add(0, String.valueOf(record.getAmount()));
         categoryRecord.add(0, record.getCategory());
         dateRecord.add(0, record.getDate());
         descriptionRecord.add(0, record.getDescription());
     }
 
+    private void refreshBalance(Double amount){
+        Double newBalance = user.getBalance() + amount;
+        user.setBalance(newBalance);
+        user.update();
+        binding.balanceText.setText(String.valueOf(user.getBalance()) + " " + user.getCurrency());
+    }
 
     public void createNewRecord() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
@@ -174,9 +182,10 @@ public class HomeFragment extends Fragment {
                     String category = categorySpinner.getSelectedItem().toString();
                     Record record = new Record(amount, note,day + "." + month + "." + year, category);
                     record.save();
+                    refreshBalance(amount);
                     Toast.makeText(getContext(), "Record created", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
-                    addRecord(record);
+                    addRecordToList(record);
                     customAdapter.notifyItemInserted(0);
                 } catch (Exception ex){
                     Toast.makeText(getContext(), "Amount is required", Toast.LENGTH_SHORT).show();
