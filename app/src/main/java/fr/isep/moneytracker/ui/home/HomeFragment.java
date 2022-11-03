@@ -2,6 +2,7 @@ package fr.isep.moneytracker.ui.home;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -17,9 +19,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,41 +34,50 @@ import fr.isep.moneytracker.model.User;
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
-    private AlertDialog dialog;
-    private TextView titleTextView;
-    private EditText amountEditText;
-    private EditText noteEditText;
+    private TextView titleTextView, datePicker;
+    private EditText amountEditText, descriptionEditText;
+    private Button saveButton, cancelButton, editButton, deleteButton;
     private RadioButton expenseRadioButton;
-    private TextView datePicker;
     private Spinner categorySpinner;
     private DatePickerDialog.OnDateSetListener setListener;
     private final Calendar calendar = Calendar.getInstance();
     private int day = calendar.get(Calendar.DAY_OF_MONTH);
     private int month = calendar.get(Calendar.MONTH);
     private int year = calendar.get(Calendar.YEAR);
+    private Long editId;
+    private Double editOldAmount;
+    private int editPosition;
     private ArrayList<String> amountRecord, categoryRecord, dateRecord, descriptionRecord;
+    private ArrayList<Long> idRecord;
     private CustomAdapter customAdapter;
     private User user;
+    private View recordPopUp;
+    private AlertDialog dialog;
+    private AlertDialog.Builder dialogBuilder;
+    private ImageView emptyImage;
+    private TextView emptyMessage;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        initAlertDialog();
 
         binding.addRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                createNewRecord();
+                addRecordDialog();
             }
         });
+
+        emptyMessage = binding.emptyText;
+        emptyImage = binding.emptyImage;
 
         user = User.first(User.class);
         refreshBalance(0.0);
         loadAllRecords();
-        customAdapter = new CustomAdapter(getActivity(), descriptionRecord, dateRecord, amountRecord, categoryRecord);
+        customAdapter = new CustomAdapter(getActivity(), descriptionRecord, dateRecord, amountRecord, categoryRecord, idRecord, this);
         binding.recordsRecycledView.setAdapter(customAdapter);
         binding.recordsRecycledView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -84,15 +95,38 @@ public class HomeFragment extends Fragment {
         categoryRecord = new ArrayList<>();
         dateRecord = new ArrayList<>();
         descriptionRecord = new ArrayList<>();
+        idRecord = new ArrayList<>();
 
        Record.listAll(Record.class).forEach(this::addRecordToList);
+
+       if(!idRecord.isEmpty()) {
+           emptyImage.setVisibility(View.INVISIBLE);
+           emptyMessage.setVisibility(View.INVISIBLE);
+       }
     }
 
     private void addRecordToList(Record record){
+        idRecord.add(0, record.getId());
         amountRecord.add(0, String.valueOf(record.getAmount()));
         categoryRecord.add(0, record.getCategory());
         dateRecord.add(0, record.getDate());
         descriptionRecord.add(0, record.getDescription());
+    }
+
+    private void editRecordLists(Record record){
+        idRecord.set(editPosition, record.getId());
+        amountRecord.set(editPosition, String.valueOf(record.getAmount()));
+        categoryRecord.set(editPosition, record.getCategory());
+        dateRecord.set(editPosition, record.getDate());
+        descriptionRecord.set(editPosition, record.getDescription());
+    }
+
+    private void removeRecordFromLists(){
+        idRecord.remove(editPosition);
+        amountRecord.remove(editPosition);
+        categoryRecord.remove(editPosition);
+        dateRecord.remove(editPosition);
+        descriptionRecord.remove(editPosition);
     }
 
     private void refreshBalance(Double amount){
@@ -102,15 +136,72 @@ public class HomeFragment extends Fragment {
         binding.balanceText.setText(String.valueOf(user.getBalance()) + " " + user.getCurrency());
     }
 
-    public void createNewRecord() {
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
-        final View recordPopUp = getLayoutInflater().inflate(R.layout.add_record, null);
+    private void refreshBalanceAfterUpdate(Double newAmount){
+        Double newBalance = user.getBalance() + newAmount - editOldAmount;
+        user.setBalance(newBalance);
+        user.update();
+        binding.balanceText.setText(String.valueOf(user.getBalance()) + " " + user.getCurrency());
+    }
+
+    private void refreshBalanceAfterDelete(){
+        Double newBalance = user.getBalance() - editOldAmount;
+        user.setBalance(newBalance);
+        user.update();
+        binding.balanceText.setText(String.valueOf(user.getBalance()) + " " + user.getCurrency());
+    }
+
+    private void initAlertDialog(){
+        dialogBuilder = new AlertDialog.Builder(getContext());
+        recordPopUp = getLayoutInflater().inflate(R.layout.add_record, null, false);
 
         titleTextView = (TextView) recordPopUp.findViewById(R.id.title);
         amountEditText = (EditText) recordPopUp.findViewById(R.id.amount);
-        noteEditText = (EditText) recordPopUp.findViewById(R.id.note);
+        descriptionEditText = (EditText) recordPopUp.findViewById(R.id.note);
         expenseRadioButton = (RadioButton) recordPopUp.findViewById(R.id.expense);
 
+        categorySpinner = (Spinner) recordPopUp.findViewById(R.id.categories);
+        datePicker = (TextView) recordPopUp.findViewById(R.id.date_picker);
+
+        cancelButton = (Button) recordPopUp.findViewById(R.id.cancel_button);
+        saveButton = (Button) recordPopUp.findViewById(R.id.save_button);
+        editButton = (Button) recordPopUp.findViewById(R.id.edit_button);
+        deleteButton = (Button) recordPopUp.findViewById(R.id.delete_button);
+    }
+
+    public void addRecordDialog(){
+        initAlertDialog();
+        showAlertDialog();
+        editButton.setVisibility(View.GONE);
+        deleteButton.setVisibility(View.GONE);
+        saveButton.setVisibility(View.VISIBLE);
+
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+        month = calendar.get(Calendar.MONTH);
+        year = calendar.get(Calendar.YEAR);
+    }
+
+    public void editRecordDialog(Long id, String description, String date, String amount, int category, int position) throws ParseException {
+        initAlertDialog();
+        showAlertDialog();
+        editButton.setVisibility(View.VISIBLE);
+        deleteButton.setVisibility(View.VISIBLE);
+        saveButton.setVisibility(View.GONE);
+
+        editOldAmount = Double.parseDouble(amount);
+        amount = amount.startsWith("-") ? amount.substring(1) : amount;
+        amountEditText.setText(amount);
+        descriptionEditText.setText(description);
+
+        day = Integer.parseInt(date.split("\\.")[0]);
+        month = Integer.parseInt(date.split("\\.")[1]);
+        year = Integer.parseInt(date.split("\\.")[2]);
+        datePicker.setText(getDay() + "." + getMonth() + "." + getYear());
+        categorySpinner.setSelection(category);
+        editId = id;
+        editPosition = position;
+    }
+
+    public void showAlertDialog() {
         expenseRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -126,16 +217,13 @@ public class HomeFragment extends Fragment {
             }
         });
 
-
         expenseRadioButton.setChecked(true);
 
-        categorySpinner = (Spinner) recordPopUp.findViewById(R.id.categories);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
                 R.array.category_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(adapter);
 
-        datePicker = (TextView) recordPopUp.findViewById(R.id.date_picker);
         datePicker.setText(getDay() + "." + getMonth() + "." + getYear());
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,7 +251,6 @@ public class HomeFragment extends Fragment {
         dialog = dialogBuilder.create();
         dialog.show();
 
-        Button cancelButton = (Button) recordPopUp.findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -171,16 +258,20 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        Button saveButton = (Button) recordPopUp.findViewById(R.id.save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try{
+                    if(idRecord.isEmpty()) {
+                        emptyImage.setVisibility(View.GONE);
+                        emptyMessage.setVisibility(View.GONE);
+                    }
+
                     Double amount = Double.parseDouble(amountEditText.getText().toString());
                     amount = expenseRadioButton.isChecked() ? amount * -1: amount;
-                    String note = noteEditText.getText().toString();
+                    String description = descriptionEditText.getText().toString();
                     String category = categorySpinner.getSelectedItem().toString();
-                    Record record = new Record(amount, note,day + "." + month + "." + year, category);
+                    Record record = new Record(amount, description,day + "." + month + "." + year, category);
                     record.save();
                     refreshBalance(amount);
                     Toast.makeText(getContext(), "Record created", Toast.LENGTH_SHORT).show();
@@ -192,6 +283,73 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try{
+                    Double amount = Double.parseDouble(amountEditText.getText().toString());
+                    amount = expenseRadioButton.isChecked() ? amount * -1: amount;
+                    String description = descriptionEditText.getText().toString();
+                    String category = categorySpinner.getSelectedItem().toString();
+
+                    Record record = Record.findById(Record.class, editId);
+                    record.setAmount(amount);
+                    record.setDate(day + "." + month + "." + year);
+                    record.setCategory(category);
+                    record.setDescription(description);
+                    record.save();
+                    refreshBalanceAfterUpdate(amount);
+
+                    Toast.makeText(getContext(), "Record edited", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    editRecordLists(record);
+                    customAdapter.notifyItemChanged(editPosition);
+                } catch (Exception ex){
+                    Toast.makeText(getContext(), "Amount is required", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try{
+                    deleteConfirmDialog();
+                } catch (Exception ex){
+                    Toast.makeText(getContext(), "Amount is required", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void deleteConfirmDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete record");
+        builder.setMessage("Are you sure?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Record record = Record.findById(Record.class, editId);
+                record.delete();
+                removeRecordFromLists();
+                customAdapter.notifyDataSetChanged();
+                refreshBalanceAfterDelete();
+                Toast.makeText(getContext(), "Record deleted", Toast.LENGTH_SHORT).show();
+
+                if(idRecord.isEmpty()) {
+                    emptyImage.setVisibility(View.VISIBLE);
+                    emptyMessage.setVisibility(View.VISIBLE);
+                }
+                dialog.dismiss();
+            }
+        });
+
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {}
+        });
+        builder.create().show();
     }
 
     private int getDay(){

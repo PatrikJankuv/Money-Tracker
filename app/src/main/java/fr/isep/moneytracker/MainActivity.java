@@ -24,6 +24,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("fr.isep.moneytracker", MODE_PRIVATE);
 
+        if (prefs.getBoolean("firstrun", true)) {
+            // Do first run stuff here then set 'firstrun' as false
+            User user = new User("", 0.0, "€");
+            user.save();
+            prefs.edit().putBoolean("firstrun", false).commit();
+        }
+
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -37,17 +44,4 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (prefs.getBoolean("firstrun", true)) {
-            // Do first run stuff here then set 'firstrun' as false
-            User user = new User("", 0.0, "€");
-            user.save();
-            prefs.edit().putBoolean("firstrun", false).commit();
-        }
-    }
-
 }
