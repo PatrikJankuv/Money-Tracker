@@ -15,7 +15,7 @@
         android:id="@+id/navigation_dashboard"
         android:name="fr.isep.moneytracker.ui.stats.dashboard.StatsFragment"
         android:label="@string/title_stats"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_stats" />
 
     <fragment
         android:id="@+id/navigation_notifications"

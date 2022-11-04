@@ -271,7 +271,7 @@ public class HomeFragment extends Fragment {
                     amount = expenseRadioButton.isChecked() ? amount * -1: amount;
                     String description = descriptionEditText.getText().toString();
                     String category = categorySpinner.getSelectedItem().toString();
-                    Record record = new Record(amount, description,getYear() + "/" + getMonth() + "/" + getDay(), category);
+                    Record record = new Record(amount, description,String.format("%02d", getYear()) + "/" + String.format("%02d", getMonth()) + "/" + String.format("%02d", getDay()), category);
                     record.save();
                     refreshBalance(amount);
                     Toast.makeText(getContext(), "Record created", Toast.LENGTH_SHORT).show();
@@ -295,7 +295,7 @@ public class HomeFragment extends Fragment {
 
                     Record record = Record.findById(Record.class, editId);
                     record.setAmount(amount);
-                    record.setDate(year + "/" + month + "/" + day);
+                    record.setDate(String.format("%02d", getYear()) + "/" + String.format("%02d", getMonth()) + "/" + String.format("%02d", getDay()));
                     record.setCategory(category);
                     record.setDescription(description);
                     record.save();
@@ -357,7 +357,7 @@ public class HomeFragment extends Fragment {
     }
 
     private int getMonth(){
-        return month == calendar.get(Calendar.MONTH) ? calendar.get(Calendar.MONTH) + 1 : month;
+        return month == calendar.get(Calendar.MONTH) ? calendar.get(Calendar.MONTH) : month;
     }
 
     private int getYear(){
