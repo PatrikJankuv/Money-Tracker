@@ -5,7 +5,7 @@ import com.orm.SugarRecord;
 public class Record extends SugarRecord {
     Double amount;
     String description;
-    // SQLite doesn't support date format, instead useing String in 'YYYY-mm-dd hh:mm:ss' format
+    // SQLite doesn't support date format, instead useing String in 'YYYY/mm/dd' format
     String date;
     String category;
 

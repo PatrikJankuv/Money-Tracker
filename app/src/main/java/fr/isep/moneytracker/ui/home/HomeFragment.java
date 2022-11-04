@@ -192,10 +192,10 @@ public class HomeFragment extends Fragment {
         amountEditText.setText(amount);
         descriptionEditText.setText(description);
 
-        day = Integer.parseInt(date.split("\\.")[0]);
-        month = Integer.parseInt(date.split("\\.")[1]);
-        year = Integer.parseInt(date.split("\\.")[2]);
-        datePicker.setText(getDay() + "." + getMonth() + "." + getYear());
+        day = Integer.parseInt(date.split("\\/")[2]);
+        month = Integer.parseInt(date.split("\\/")[1]);
+        year = Integer.parseInt(date.split("\\/")[0]);
+        datePicker.setText(getDay() + "/" + getMonth() + "/" + getYear());
         categorySpinner.setSelection(category);
         editId = id;
         editPosition = position;
@@ -224,7 +224,7 @@ public class HomeFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(adapter);
 
-        datePicker.setText(getDay() + "." + getMonth() + "." + getYear());
+        datePicker.setText(getDay() + "/" + getMonth() + "/" + getYear());
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -242,7 +242,7 @@ public class HomeFragment extends Fragment {
                 month = monthView;
                 year = yearView;
                 month++;
-                String date = day + "." + month + "." + year;
+                String date = day + "/" + month + "/" + year;
                 datePicker.setText(date);
             }
         };
@@ -271,7 +271,7 @@ public class HomeFragment extends Fragment {
                     amount = expenseRadioButton.isChecked() ? amount * -1: amount;
                     String description = descriptionEditText.getText().toString();
                     String category = categorySpinner.getSelectedItem().toString();
-                    Record record = new Record(amount, description,day + "." + month + "." + year, category);
+                    Record record = new Record(amount, description,getYear() + "/" + getMonth() + "/" + getDay(), category);
                     record.save();
                     refreshBalance(amount);
                     Toast.makeText(getContext(), "Record created", Toast.LENGTH_SHORT).show();
@@ -295,7 +295,7 @@ public class HomeFragment extends Fragment {
 
                     Record record = Record.findById(Record.class, editId);
                     record.setAmount(amount);
-                    record.setDate(day + "." + month + "." + year);
+                    record.setDate(year + "/" + month + "/" + day);
                     record.setCategory(category);
                     record.setDescription(description);
                     record.save();
