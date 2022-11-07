@@ -31,6 +31,6 @@
     <string-array name="graphs_array">
         <item>Balance</item>
         <item>Income and Expense</item>
-        <item>Category</item>
+        <item>Category expense</item>
     </string-array>
 </resources>

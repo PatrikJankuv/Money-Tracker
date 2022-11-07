@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -23,6 +24,9 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
@@ -42,6 +46,7 @@ public class StatsFragment extends Fragment {
     private FragmentStatsBinding binding;
     private LineChart balanceChart;
     private BarChart ieChart;
+    private PieChart categoryChart;
     private User user;
     private Spinner graphSpinner;
 
@@ -55,6 +60,7 @@ public class StatsFragment extends Fragment {
 
         graphSpinner = binding.graphSpinner;
         ieChart = binding.ieChart;
+        categoryChart = binding.categoryChart;
         balanceChart = (LineChart) binding.balanceChart;
 
         user = User.first(User.class);
@@ -69,6 +75,7 @@ public class StatsFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 balanceChart.setVisibility(View.GONE);
                 ieChart.setVisibility(View.GONE);
+                categoryChart.setVisibility(View.GONE);
                 String selectedGraph = graphSpinner.getSelectedItem().toString();
                 switch (selectedGraph){
                     case "Balance":
@@ -79,8 +86,9 @@ public class StatsFragment extends Fragment {
                         showIncomeExpenseGraph();
                         ieChart.setVisibility(View.VISIBLE);
                         break;
-                    case "Category":
-                        System.out.println("/todo 2");
+                    case "Category expense":
+                        showCategoryGraph();
+                        categoryChart.setVisibility(View.VISIBLE);
                         break;
                     default:
                         throw new IllegalArgumentException("Invalid graph selection");
@@ -89,12 +97,9 @@ public class StatsFragment extends Fragment {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // your code here
-            }
+            public void onNothingSelected(AdapterView<?> parentView) {}
         });
 
-//        getBalanceStats();
         return root;
     }
 
@@ -216,6 +221,44 @@ public class StatsFragment extends Fragment {
         ieChart.animate();
         ieChart.groupBars(0, groupSpace, barSpace);
         ieChart.invalidate();
+    }
+
+    private void showCategoryGraph(){
+        ArrayList<PieEntry> pieEntries = new ArrayList<>();
+        String label = "type";
+        String[] categories = new String[] {"Food", "Shopping", "Housing", "Transportation", "Entertainment", "Income", "Other"};
+
+        Map<String, Integer> typeAmountMap = new HashMap<>();
+        for(int i = 0; i < categories.length; i++){
+            List<Record> recordsList = Record.findWithQuery(Record.class, "Select * from Record where category = ? and amount < 0", categories[i]);
+            double temp = 0.0;
+            for(Record r: recordsList){
+                temp -= r.getAmount();
+            }
+            if(temp != 0.0) typeAmountMap.put(categories[i], (int)temp);
+        }
+
+        ArrayList<Integer> colors = new ArrayList<>();
+        colors.add(Color.parseColor("#304567"));
+        colors.add(Color.parseColor("#309967"));
+        colors.add(Color.parseColor("#476567"));
+        colors.add(Color.parseColor("#890567"));
+        colors.add(Color.parseColor("#a35567"));
+        colors.add(Color.parseColor("#ff5f67"));
+        colors.add(Color.parseColor("#3ca567"));
+
+        for(String type: typeAmountMap.keySet()){
+            pieEntries.add(new PieEntry(typeAmountMap.get(type).floatValue(), type));
+        }
+
+        PieDataSet pieDataSet = new PieDataSet(pieEntries,label);
+        pieDataSet.setValueTextSize(12f);
+        pieDataSet.setColors(colors);
+        PieData pieData = new PieData(pieDataSet);
+        pieData.setDrawValues(true);
+
+        categoryChart.setData(pieData);
+        categoryChart.invalidate();
     }
 
     private String extractMonth(String date){
