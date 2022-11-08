@@ -1,4 +1,4 @@
-# Money-Tracker
+# Money Tracker
 
 Semester project for the subject Mobile Application Development for Android
 
