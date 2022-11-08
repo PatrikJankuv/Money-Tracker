@@ -1,8 +1,8 @@
 # Money-Tracker
 
-Semestar project for subject Mobile Aplication Development for Android
+Semester project for the subject Mobile Application Development for Android
 
-Authors:
+Team:
 
 - Patrik JANKUV (62531)
 - Duru DOKUZLUOGLU (62523)
@@ -15,6 +15,3 @@ Authors:
 Some basic UI suggestions:
 
 https://www.figma.com/file/MwoaqqxjPVcR3W3pPfyX5z/Untitled?node-id=0%3A1
-
-Invite link for editing:
-https://www.figma.com/team_invite/redeem/eTQn8RTo5KC4xGrvqJfWmf
