@@ -52,9 +52,6 @@ public class StatsFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        StatsViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(StatsViewModel.class);
-
         binding = FragmentStatsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -239,13 +236,13 @@ public class StatsFragment extends Fragment {
         }
 
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#304567"));
-        colors.add(Color.parseColor("#309967"));
-        colors.add(Color.parseColor("#476567"));
-        colors.add(Color.parseColor("#890567"));
-        colors.add(Color.parseColor("#a35567"));
-        colors.add(Color.parseColor("#ff5f67"));
-        colors.add(Color.parseColor("#3ca567"));
+        colors.add(Color.parseColor(getResources().getString(R.color.food_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.shopping_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.housing_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.transportation_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.entertainment_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.income_category)));
+        colors.add(Color.parseColor(getResources().getString(R.color.other_category)));
 
         for(String type: typeAmountMap.keySet()){
             pieEntries.add(new PieEntry(typeAmountMap.get(type).floatValue(), type));

@@ -42,7 +42,7 @@ public class HomeFragment extends Fragment {
     private DatePickerDialog.OnDateSetListener setListener;
     private final Calendar calendar = Calendar.getInstance();
     private int day = calendar.get(Calendar.DAY_OF_MONTH);
-    private int month = calendar.get(Calendar.MONTH);
+    private int month = calendar.get(Calendar.MONTH) + 1;
     private int year = calendar.get(Calendar.YEAR);
     private Long editId;
     private Double editOldAmount;
@@ -169,15 +169,15 @@ public class HomeFragment extends Fragment {
     }
 
     public void addRecordDialog(){
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+        month = calendar.get(Calendar.MONTH) + 1;
+        year = calendar.get(Calendar.YEAR);
+
         initAlertDialog();
         showAlertDialog();
         editButton.setVisibility(View.GONE);
         deleteButton.setVisibility(View.GONE);
         saveButton.setVisibility(View.VISIBLE);
-
-        day = calendar.get(Calendar.DAY_OF_MONTH);
-        month = calendar.get(Calendar.MONTH);
-        year = calendar.get(Calendar.YEAR);
     }
 
     public void editRecordDialog(Long id, String description, String date, String amount, int category, int position) throws ParseException {
@@ -229,7 +229,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(),
-                        setListener, getYear(), getMonth(), getDay());
+                        setListener, getYear(), getMonth()-1, getDay());
                 datePickerDialog.getDatePicker().setMaxDate(new Date().getTime());
                 datePickerDialog.show();
             }
